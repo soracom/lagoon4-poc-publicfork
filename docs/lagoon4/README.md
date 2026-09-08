@@ -127,6 +127,25 @@ available on the host at the time, so **two `yarn build`s at once will not fit**
 If several agents are working in parallel, the frontend build is the step that has
 to be taken in turns.
 
+### Take heavy builds in turns
+
+Because of that, the heavy steps go through a lock. It's one `flock` on a shared
+file, so whoever gets there first runs and everyone else waits:
+
+```sh
+.devcontainer/with-build-lock.sh yarn build
+```
+
+Use it for `yarn build`, for `yarn install` on a fresh worktree, and for a full
+`go build` of the binary. Short `go build ./pkg/...` type checks don't need it.
+
+It's deliberately a mutex and not a scheduler — there's no queue, no priority and
+no fairness, and a waiter can be overtaken. It exists to stop two 8.6 GB builds
+overlapping, which is the only failure that actually hurts. If it looks like it's
+hung, it's probably just waiting; it prints a line to stderr when it starts to wait.
+The lock file lives in `/workspaces/lagoon4-poc/.locks/`, and `BUILD_LOCK_DIR`
+overrides that if you need to.
+
 ### One disagreement with the developer guide
 
 `contribute/developer-guide.md` says to build the frontend with `yarn start`. That's
@@ -247,11 +266,11 @@ constantly, so deleting them would put a modify/delete conflict in the way of ev
 future merge onto a newer upstream tag, which is the one operation this branch model
 exists to make easy.
 
-The intent is that GitHub Actions stays disabled for this repository at the settings
-level instead, which is a toggle rather than a diff and can be reverted without
-touching the tree. **This has not been confirmed** — see the PR discussion. If you
-see upstream workflows actually running on a PR into `lagoon4`, that's the setting
-being on, not a decision we made.
+This relies on GitHub Actions being disabled for the repository at the settings
+level, which is a toggle rather than a diff and can be reverted without touching the
+tree. **Confirm Actions is disabled** before trusting it. If you ever see upstream
+workflows actually running on a PR into `lagoon4`, that's the setting being on rather
+than a decision we made, and it wants turning off rather than working around.
 
 No SORACOM CI has been added yet. Lagoon 3's build setup is worth looking at before
 we add any, so that it's a deliberate choice rather than a reflex.

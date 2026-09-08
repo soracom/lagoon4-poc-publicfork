@@ -51,9 +51,11 @@ fi
 # Keep the store untracked. info/exclude is in the common git dir, so this covers
 # every worktree, and unlike .gitignore it is not a tracked file upstream will conflict on.
 EXCLUDE="$WORKSPACE/.git/info/exclude"
-if [ -f "$EXCLUDE" ] && ! grep -qxF '/.yarn-global/' "$EXCLUDE"; then
-  echo '/.yarn-global/' >> "$EXCLUDE"
-fi
+for pat in '/.yarn-global/' '/.locks/'; do
+  if [ -f "$EXCLUDE" ] && ! grep -qxF "$pat" "$EXCLUDE"; then
+    echo "$pat" >> "$EXCLUDE"
+  fi
+done
 
 echo "==> Done. Go module cache (/go/pkg/mod) and build cache (~/.cache/go-build) are"
 echo "    already outside the worktrees, so all worktrees share them with no extra setup."
