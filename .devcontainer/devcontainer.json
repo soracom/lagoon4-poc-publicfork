@@ -1,0 +1,31 @@
+{
+  "name": "lagoon4-poc",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {
+    // Keep in sync with the `go` directive in go.mod.
+    "ghcr.io/devcontainers/features/go:1": { "version": "1.26.6" },
+    // Major version only: package.json engines allows ">= 22 <25". See docs/lagoon4/README.md
+    // for why this is not pinned to the exact .nvmrc patch version.
+    // installYarnUsingApt must stay false — yarn comes from corepack, pinned by packageManager.
+    "ghcr.io/devcontainers/features/node:1": { "version": "24", "installYarnUsingApt": false },
+    // Required by `make devenv sources=...`, which brings up backing services via docker compose.
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    // `gh` is not in the base image, and the fork workflow (PRs into lagoon4, checking repo
+    // settings) needs it.
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  // Installs system packages, sets up corepack/yarn, and configures the shared Yarn store
+  // that lets several worktrees under .worktrees/ share one copy of node_modules.
+  // See the comments in the script itself.
+  "postCreateCommand": "bash .devcontainer/post-create.sh ${containerWorkspaceFolder}",
+  "containerEnv": {
+    "NODE_OPTIONS": "--max-old-space-size=8192",
+    "GOTOOLCHAIN": "auto"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["golang.go", "dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+    }
+  },
+  "remoteUser": "vscode"
+}

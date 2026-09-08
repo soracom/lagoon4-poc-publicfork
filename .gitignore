@@ -76,6 +76,11 @@ public/css/*.min.css
 .vs/
 .cursor/
 .devcontainer/
+# Lagoon 4: upstream ignores .devcontainer/ so contributors can keep personal ones.
+# On this fork the devcontainer IS the shared build environment, so it is tracked.
+# Un-ignoring the directory itself is required -- git will not descend into an
+# excluded directory, so a negation inside .devcontainer/ would not work.
+!.devcontainer/
 .claude/*
 
 # Claude skills everyone should have. Re-including a path under an ignored
